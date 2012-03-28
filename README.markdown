@@ -8,4 +8,4 @@ Updates commands to match [style guide](https://github.com/heroku/dx/blob/master
 
 ## Usage
 
-After installation the plugin should work seamlessly. So far it should work for any commands in the `apps` namespace and for the `ps` command.
+After installation the plugin should work seamlessly. So far it should work for commands in the `apps` and `ps` namespaces.
