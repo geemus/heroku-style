@@ -16,12 +16,13 @@ class Heroku::Command::Ps < Heroku::Command::Base
     # deprecation notice added to v2.21.3 on 03/16/12
     style_warning("`heroku ps:dynos QTY` has been deprecated and replaced with `heroku ps:scale dynos=QTY`")
     if dynos = args.shift
+      style_action("scaling #{app} to #{quantify("dyno", current)}")
       current = heroku.set_dynos(app, dynos)
-      display "#{app} now running #{quantify("dyno", current)}"
+      hputs("done")
     else
       info = heroku.info(app)
       raise(Heroku::Command::CommandFailed, "For Cedar apps, use `heroku ps`")  if info[:stack] == "cedar"
-      display "#{app} is running #{quantify("dyno", info[:dynos])}"
+      style_info("#{app} is running #{quantify("dyno", info[:dynos])}")
     end
   end
 
@@ -39,12 +40,13 @@ class Heroku::Command::Ps < Heroku::Command::Base
     # deprecation notice added to v2.21.3 on 03/16/12
     style_warning("`heroku ps:workers QTY` has been deprecated and replaced with `heroku ps:scale workers=QTY`")
     if workers = args.shift
+      style_action("scaling #{app} to #{quantify("worker", current)}")
       current = heroku.set_workers(app, workers)
-      display "#{app} now running #{quantify("worker", current)}"
+      hputs("done")
     else
       info = heroku.info(app)
       raise(Heroku::Command::CommandFailed, "For Cedar apps, use `heroku ps`")  if info[:stack] == "cedar"
-      display "#{app} is running #{quantify("worker", info[:workers])}"
+      style_info("#{app} is running #{quantify("worker", info[:workers])}")
     end
   end
 
@@ -74,19 +76,19 @@ class Heroku::Command::Ps < Heroku::Command::Base
   def restart
     opts = case args.first
     when NilClass then
-      display "Restarting processes... ", false
+      style_action("Restarting processes")
       {}
     when /.+\..+/
       ps = args.first
-      display "Restarting #{ps} process... ", false
+      style_action("Restarting #{ps} process")
       { :ps => ps }
     else
       type = args.first
-      display "Restarting #{type} processes... ", false
+      style_action("Restarting #{type} processes")
       { :type => type }
     end
     heroku.ps_restart(app, opts)
-    display "done"
+    hputs("done")
   end
 
   alias_command "restart", "ps:restart"
@@ -109,10 +111,10 @@ class Heroku::Command::Ps < Heroku::Command::Base
     error "Usage: heroku ps:scale web=2 worker+1" if changes.empty?
 
     changes.each do |process, amount|
-      display "Scaling #{process} processes... ", false
+      style_action("scaling #{process} processes")
       amount.gsub!("=", "")
       new_qty = heroku.ps_scale(app, :type => process, :qty => amount)
-      display "done, now running #{new_qty}"
+      hputs("done, now running #{new_qty}")
     end
   end
 
@@ -128,18 +130,18 @@ class Heroku::Command::Ps < Heroku::Command::Base
     opt =
       if (args.first =~ /.+\..+/)
         ps = args.first
-        display "Stopping #{ps} process... ", false
+        style_action("stopping #{ps} process")
         {:ps => ps}
       elsif args.first
         type = args.first
-        display "Stopping #{type} processes... ", false
+        style_action("stopping #{type} processes")
         {:type => type}
       else
         error "Usage: heroku ps:stop PROCESS"
       end
 
     heroku.ps_stop(app, opt)
-    display "done"
+    hputs("done")
   end
 
   alias_command "stop", "ps:stop"
