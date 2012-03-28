@@ -29,9 +29,13 @@ class Heroku::Command::Apps < Heroku::Command::Base
   # -r, --raw  # output info as raw key/value pairs
   #
   def info
+    unless options[:raw]
+      style_info("#{app} info")
+    end
+
     attrs = heroku.info(app)
 
-    if options[:raw] then
+    if options[:raw]
       attrs.keys.sort_by { |a| a.to_s }.each do |key|
         case key
         when :addons then
@@ -77,7 +81,6 @@ class Heroku::Command::Apps < Heroku::Command::Base
         end
       end
 
-      style_info("#{app} info")
       style_object(data)
     end
   end
@@ -98,9 +101,9 @@ class Heroku::Command::Apps < Heroku::Command::Base
     stack   = extract_option('--stack', 'aspen-mri-1.8.6')
     timeout = extract_option('--timeout', 30).to_i
     name    = args.shift.downcase.strip rescue nil
+    style_action("creating #{name}")
     info    = heroku.create_app(name, {:stack => stack})
     name = info["name"]
-    style_action("creating #{name}")
     begin
       if info["create_status"] == "creating"
         Timeout::timeout(timeout) do
@@ -176,7 +179,7 @@ class Heroku::Command::Apps < Heroku::Command::Base
   def open
     info = heroku.info(app)
     url = info[:web_url]
-    action("opening #{url}")
+    style_action("opening #{url}")
     Launchy.open url
   end
 
@@ -192,11 +195,12 @@ class Heroku::Command::Apps < Heroku::Command::Base
       raise Heroku::Command::CommandFailed.new("Usage: heroku apps:destroy --app APP")
     end
 
+    action("destroying #{app} (including all add-ons)")
+
     heroku.info(app) # fail fast if no access or doesn't exist
 
     message = "WARNING: Potentially Destructive Action\nThis command will destroy #{app} (including all add-ons)."
     if confirm_command(app, message)
-      action("destroying #{app} (including all add-ons)")
       heroku.destroy(app)
       if remotes = git_remotes(Dir.pwd)
         remotes.each do |remote_name, remote_app|
