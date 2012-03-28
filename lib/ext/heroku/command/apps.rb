@@ -16,7 +16,7 @@ class Heroku::Command::Apps < Heroku::Command::Base
       list.map {|name, owner| apps_by_owner[owner] << name}
       style_object(apps_by_owner)
     else
-      hputs("You have no apps.")
+      hputs("  You have no apps.")
     end
   end
 

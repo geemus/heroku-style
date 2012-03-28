@@ -57,14 +57,18 @@ class Heroku::Command::Ps < Heroku::Command::Base
   # list processes for an app
   #
   def index
-    ps = heroku.ps(app)
-
     style_info("#{app} processes by command")
-    data = Hash.new {|hash,key| hash[key] = {}}
-    ps.each do |p|
-      data["`#{p['command']}`"][p['process']] = "#{p['state']} for #{time_ago(p['elapsed']).gsub(/ ago/, "")}"
+
+    ps = heroku.ps(app)
+    if ps.length > 0
+      data = Hash.new {|hash,key| hash[key] = {}}
+      ps.each do |p|
+        data["`#{p['command']}`"][p['process']] = "#{p['state']} for #{time_ago(p['elapsed']).gsub(/ ago/, "")}"
+      end
+      style_object(data)
+    else
+      hputs("  You have no processes.")
     end
-    display_object(data)
   end
 
   # ps:restart [PROCESS]
