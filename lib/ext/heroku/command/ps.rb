@@ -57,7 +57,7 @@ class Heroku::Command::Ps < Heroku::Command::Base
   def index
     ps = heroku.ps(app)
 
-    style_info("#{app} processes")
+    style_info("#{app} processes by command")
     data = Hash.new {|hash,key| hash[key] = {}}
     ps.each do |p|
       data["`#{p['command']}`"][p['process']] = "#{p['state']} for #{time_ago(p['elapsed']).gsub(/ ago/, "")}"

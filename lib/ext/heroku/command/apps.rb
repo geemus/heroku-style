@@ -9,7 +9,7 @@ class Heroku::Command::Apps < Heroku::Command::Base
   # list your apps
   #
   def index
-    style_info("apps")
+    style_info("apps by owner")
     list = heroku.list
     if list.size > 0
       apps_by_owner = Hash.new {|hash,key| hash[key] = []}
