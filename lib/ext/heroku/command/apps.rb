@@ -9,11 +9,17 @@ class Heroku::Command::Apps < Heroku::Command::Base
   # list your apps
   #
   def index
-    style_info("apps by owner")
+    style_info("apps")
     list = heroku.list
     if list.size > 0
       apps_by_owner = Hash.new {|hash,key| hash[key] = []}
-      list.map {|name, owner| apps_by_owner[owner] << name}
+      list.map do |name, owner|
+        if owner == heroku.user
+          apps_by_owner["owned by me"] << name
+        else
+          apps_by_owner["shared with me"] << name
+        end
+      end
       style_object(apps_by_owner)
     else
       hputs("  You have no apps.")
