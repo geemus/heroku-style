@@ -57,15 +57,28 @@ class Heroku::Command::Ps < Heroku::Command::Base
   # list processes for an app
   #
   def index
-    style_info("#{app} processes by command")
+    style_header("#{app} Processes")
 
     ps = heroku.ps(app)
     if ps.length > 0
-      data = Hash.new {|hash,key| hash[key] = {}}
+      named_processes = Hash.new {|hash,key| hash[key] = []}
+      other_processes = []
       ps.each do |p|
-        data["`#{p['command']}`"][p['process']] = "#{p['state']} for #{time_ago(p['elapsed']).gsub(/ ago/, "")}"
+        type = p["process"].split(".",2).first
+        if type == "run"
+          other_processes << %|#{p["process"]}: `#{p["command"]}`, #{p["state"]} for #{time_ago(p["elapsed"]).gsub(/ ago/, "")}|
+        else
+          named_processes[%|#{type}: `#{p["command"]}`|] << %|#{p["process"]}: #{p["state"]} for #{time_ago(p["elapsed"]).gsub(/ ago/, "")}|
+        end
       end
-      style_object(data)
+      named_processes.keys.sort.each do |key|
+        style_info(key)
+        style_object(named_processes[key])
+      end
+      unless other_processes.empty?
+        style_info("Other Processes")
+        style_object(other_processes)
+      end
     else
       hputs("  You have no processes.")
     end

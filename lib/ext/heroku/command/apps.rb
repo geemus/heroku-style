@@ -9,20 +9,16 @@ class Heroku::Command::Apps < Heroku::Command::Base
   # list your apps
   #
   def index
-    style_info("apps")
+    style_header("#{heroku.user} Apps")
     list = heroku.list
     if list.size > 0
-      apps_by_owner = Hash.new {|hash,key| hash[key] = []}
-      list.map do |name, owner|
-        if owner == heroku.user
-          apps_by_owner["owned by me"] << name
-        else
-          apps_by_owner["shared with me"] << name
-        end
-      end
-      style_object(apps_by_owner)
+      owned, shared = list.partition {|app, owner| owner == heroku.user}
+      style_info("Owned by Me")
+      style_object(owned.map {|app, owner| app})
+      style_info("Shared with Me")
+      style_object(shared.map {|app, owner| app})
     else
-      hputs("  You have no apps.")
+      hputs("You have no apps.")
     end
   end
 
@@ -36,7 +32,7 @@ class Heroku::Command::Apps < Heroku::Command::Base
   #
   def info
     unless options[:raw]
-      style_info("#{app} info")
+      style_header("#{app} Info")
     end
 
     attrs = heroku.info(app)
@@ -54,35 +50,35 @@ class Heroku::Command::Apps < Heroku::Command::Base
       end
     else
       data = {
-        'addons'            => !attrs[:addons].empty? && attrs[:addons].map {|addon| addon['description']},
-        'create status'     => (attrs[:create_status] != 'complete') && attrs[:create_status],
-        'cron finished at'  => attrs[:cron_finished_at] && format_date(attrs[:cron_finished_at]),
-        'cron next run'     => attrs[:cron_next_run] && format_date(attrs[:cron_next_run]),
-        'database size'     => attrs[:database_size] && format_bytes(attrs[:database_size]),
-        'domain name'       => attrs[:domain_name],
-        'dynos'             => (attrs[:stack] != 'cedar') && attrs[:dynos],
-        'git url'           => attrs[:git_url],
-        'owner'             => attrs[:owner],
-        'repo size'         => attrs[:repo_size] && format_bytes(attrs[:repo_size]),
-        'slug size'         => attrs[:slug_size] && format_bytes(attrs[:slug_size]),
-        'stack'             => attrs[:stack],
-        'web url'           => attrs[:web_url],
-        'workers'           => (attrs[:stack] != 'cedar') && attrs[:workers],
+        'Addons'            => !attrs[:addons].empty? && attrs[:addons].map {|addon| addon['description']},
+        'Create Status'     => (attrs[:create_status] != 'complete') && attrs[:create_status],
+        'Cron Finished At'  => attrs[:cron_finished_at] && format_date(attrs[:cron_finished_at]),
+        'Cron Next Run'     => attrs[:cron_next_run] && format_date(attrs[:cron_next_run]),
+        'Database Size'     => attrs[:database_size] && format_bytes(attrs[:database_size]),
+        'Domain Name'       => attrs[:domain_name],
+        'Dynos'             => (attrs[:stack] != 'cedar') && attrs[:dynos],
+        'Git URL'           => attrs[:git_url],
+        'Owner'             => attrs[:owner],
+        'Repo Size'         => attrs[:repo_size] && format_bytes(attrs[:repo_size]),
+        'Slug Size'         => attrs[:slug_size] && format_bytes(attrs[:slug_size]),
+        'Stack'             => attrs[:stack],
+        'Web URL'           => attrs[:web_url],
+        'Workers'           => (attrs[:stack] != 'cedar') && attrs[:workers],
       }
       data.reject! {|key,value| !value}
 
       collaborators = attrs[:collaborators].delete_if { |c| c[:email] == attrs[:owner] }
       unless collaborators.empty?
         attrs[:collaborators].reject! {|collaborator| collaborator[:email] == attrs[:owner]}
-        data['collaborators'] = attrs[:collaborators].map {|collaborator| collaborator[:email]}
+        data['Collaborators'] = attrs[:collaborators].map {|collaborator| collaborator[:email]}
       end
 
       if attrs[:database_tables]
-        data['database size'].gsub!('(empty)', '0K') + " in #{quantify("table", attrs[:database_tables])}"
+        data['Database Size'].gsub!('(empty)', '0K') + " in #{quantify("table", attrs[:database_tables])}"
       end
 
       if attrs[:dyno_hours].is_a?(Hash)
-        data['dyno hours'] = attrs[:dyno_hours].keys.map do |type|
+        data['Dyno Hours'] = attrs[:dyno_hours].keys.map do |type|
           "    = %s: %0.2f dyno-hours" % [ type.to_s.capitalize, attrs[:dyno_hours][type] ]
         end
       end
