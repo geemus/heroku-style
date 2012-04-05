@@ -12,7 +12,7 @@ module Heroku
 
     def style_header(header)
       hputs
-      style_info(header)
+      hputs("== #{header}")
       hputs
     end
 
