@@ -2,11 +2,12 @@ module Heroku
   module Helpers
 
     def style_warning(message)
-      hputs("~~~ #{message}")
+      hputs("~~ #{message}")
     end
 
     def style_action(action)
-      hprint("=== #{action}")
+      hputs
+      hprint("++ #{action}... ")
     end
 
     def style_header(header)
@@ -16,7 +17,7 @@ module Heroku
     end
 
     def style_info(info)
-      hputs("=== #{info}")
+      hputs("-- #{info}")
     end
 
     def style_object(object)
@@ -50,6 +51,21 @@ module Heroku
       else
         hputs(object.to_s)
       end
+    end
+
+    # monkey-patches
+
+    def create_git_remote(remote, url)
+      return if git('remote').split("\n").include?(remote)
+      return unless File.exists?(".git")
+      git "remote add #{remote} #{url}"
+      display "Git remote #{remote} added"
+      hputs
+    end
+
+    def format_with_bang(message)
+      return '' if message.to_s.strip == ""
+      "!! " + message.split("\n").join("\n!! ")
     end
 
   end

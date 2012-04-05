@@ -93,19 +93,20 @@ class Heroku::Command::Ps < Heroku::Command::Base
   def restart
     opts = case args.first
     when NilClass then
-      style_action("Restarting processes")
+      style_action("Restarting Processes")
       {}
     when /.+\..+/
       ps = args.first
-      style_action("Restarting #{ps} process")
+      style_action("Restarting #{ps} Process")
       { :ps => ps }
     else
       type = args.first
-      style_action("Restarting #{type} processes")
+      style_action("Restarting #{type} Processes")
       { :type => type }
     end
     heroku.ps_restart(app, opts)
     hputs("done")
+    hputs
   end
 
   alias_command "restart", "ps:restart"
@@ -128,10 +129,11 @@ class Heroku::Command::Ps < Heroku::Command::Base
     error "Usage: heroku ps:scale web=2 worker+1" if changes.empty?
 
     changes.each do |process, amount|
-      style_action("scaling #{process} processes")
+      style_action("Scaling #{process} Processes")
       amount.gsub!("=", "")
       new_qty = heroku.ps_scale(app, :type => process, :qty => amount)
       hputs("done, now running #{new_qty}")
+      hputs
     end
   end
 
@@ -147,11 +149,11 @@ class Heroku::Command::Ps < Heroku::Command::Base
     opt =
       if (args.first =~ /.+\..+/)
         ps = args.first
-        style_action("stopping #{ps} process")
+        style_action("Stopping #{ps} Process")
         {:ps => ps}
       elsif args.first
         type = args.first
-        style_action("stopping #{type} processes")
+        style_action("Stopping #{type} Processes")
         {:type => type}
       else
         error "Usage: heroku ps:stop PROCESS"
@@ -159,6 +161,7 @@ class Heroku::Command::Ps < Heroku::Command::Base
 
     heroku.ps_stop(app, opt)
     hputs("done")
+    hputs
   end
 
   alias_command "stop", "ps:stop"

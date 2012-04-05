@@ -103,9 +103,13 @@ class Heroku::Command::Apps < Heroku::Command::Base
     stack   = extract_option('--stack', 'aspen-mri-1.8.6')
     timeout = extract_option('--timeout', 30).to_i
     name    = args.shift.downcase.strip rescue nil
-    style_action("creating #{name}")
+    if name
+      style_action("Creating #{name}")
+    else
+      style_action("Creating")
+    end
     info    = heroku.create_app(name, {:stack => stack})
-    name = info["name"]
+    name    = info["name"]
     begin
       if info["create_status"] == "creating"
         Timeout::timeout(timeout) do
@@ -117,10 +121,11 @@ class Heroku::Command::Apps < Heroku::Command::Base
         end
       end
       hputs("done, stack is #{info["stack"]}")
+      hputs
 
       (options[:addons] || "").split(",").each do |addon|
         addon.strip!
-        style_action("adding #{addon} to #{name}")
+        style_action("Adding #{addon} to #{name}")
         heroku.install_addon(name, addon)
         hputs("done")
       end
@@ -130,8 +135,8 @@ class Heroku::Command::Apps < Heroku::Command::Base
       end
 
       style_object({
-        :git_url => info["git_url"],
-        :web_url => info["web_url"]
+        "Git URL" => info["git_url"],
+        "Web URL" => info["web_url"]
       })
     rescue Timeout::Error
       error("Timed Out! Check heroku status for known issues.")
@@ -150,9 +155,10 @@ class Heroku::Command::Apps < Heroku::Command::Base
     newname = args.shift.downcase.strip rescue ''
     raise(Heroku::Command::CommandFailed, "Must specify a new name.") if newname == ''
 
-    style_action("renaming #{app} to #{newname}")
+    style_action("Renaming #{app} to #{newname}")
     heroku.update(app, :name => newname)
     hputs("done")
+    hputs
 
     info = heroku.info(newname)
     style_object({
@@ -182,6 +188,8 @@ class Heroku::Command::Apps < Heroku::Command::Base
     info = heroku.info(app)
     url = info[:web_url]
     style_action("opening #{url}")
+    hputs("done")
+    hputs
     Launchy.open url
   end
 
@@ -197,12 +205,11 @@ class Heroku::Command::Apps < Heroku::Command::Base
       raise Heroku::Command::CommandFailed.new("Usage: heroku apps:destroy --app APP")
     end
 
-    action("destroying #{app} (including all add-ons)")
-
     heroku.info(app) # fail fast if no access or doesn't exist
 
     message = "WARNING: Potentially Destructive Action\nThis command will destroy #{app} (including all add-ons)."
     if confirm_command(app, message)
+      style_action("destroying #{app} (including all add-ons)")
       heroku.destroy(app)
       if remotes = git_remotes(Dir.pwd)
         remotes.each do |remote_name, remote_app|
@@ -211,6 +218,7 @@ class Heroku::Command::Apps < Heroku::Command::Base
         end
       end
       hputs("done")
+      hputs
     end
   end
 
