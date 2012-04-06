@@ -2,43 +2,44 @@ module Heroku
   module Helpers
 
     def style_warning(message)
-      hputs("~~ #{message}")
+      hputs("  ~~ #{message}")
     end
 
     def style_action(action)
       hputs
-      hprint("++ #{action}... ")
+      hprint("  ++ #{action}... ")
     end
 
     def style_header(header)
       hputs
-      hputs("== #{header}")
+      hputs("  == #{header}")
       hputs
     end
 
     def style_info(info)
-      hputs("-- #{info}")
+      hputs("  -- #{info}")
     end
 
     def style_object(object)
       case object
       when Array
         object.sort.each do |item|
-          hputs("#{item}")
+          hputs("  #{item}")
         end
         hputs
       when Hash
         key_length = object.keys.map {|key| key.length}.max + 2
         sorted_keys = object.keys.sort_by {|key| key.to_s}
         sorted_keys.each do |key|
-          hprint("#{key}: ".ljust(key_length))
+          hprint("  " + "#{key}: ".ljust(key_length))
           case data = object[key]
           when Array
             data.sort.each_with_index do |item, index|
-              unless index == 0
-                hprint(" " * key_length)
+              if index == 0
+                hputs(item)
+              else
+                hputs(" " * key_length + "  #{item}")
               end
-              hputs(item)
             end
             hputs
           else
